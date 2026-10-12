@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>ATM Interface</title>
+    <style>
+         :root {
+            --ink: #132a2e;
+            --ink-soft: #4d6367;
+            --paper: #eef4f0;
+            --panel: #0f2b26;
+            --panel-glass: #153a33;
+            --accent: #e8b04b;
+            --accent-dim: #b98a34;
+            --good: #5fb582;
+            --bad: #d9705a;
+            --slot: #0a1f1c;
+            --font-display: 'Courier New', monospace;
+            --font-body: Georgia, 'Times New Roman', serif;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+             :root:not([data-theme="light"]) {
+                --paper: #0c1613;
+                --ink: #e9efe9;
+                --ink-soft: #9fb0ab;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            height: 100%;
+        }
+        
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--font-body);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 16px 64px;
+            min-height: 100%;
+        }
+        
+        .machine {
+            width: 100%;
+            max-width: 420px;
+        }
+        
+        .brand {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        
+        .brand .mark {
+            font-family: var(--font-display);
+            letter-spacing: 0.14em;
+            font-size: 13px;
+            color: var(--ink-soft);
+        }
+        
+        .brand h1 {
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 30px;
+            margin: 4px 0 0;
+            letter-spacing: 0.01em;
+        }
+        
+        .cabinet {
+            background: linear-gradient(160deg, var(--panel) 0%, var(--panel-glass) 100%);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 30px 60px -25px rgba(6, 20, 17, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+        
+        .screen {
+            background: var(--slot);
+            border-radius: 10px;
+            padding: 22px 20px;
+            min-height: 190px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .screen::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+            pointer-events: none;
+        }
+        
+        .screen-label {
+            font-family: var(--font-display);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            color: #6fae7e;
+            margin: 0;
+        }
+        
+        .screen-msg {
+            font-family: var(--font-display);
+            color: #e9f5ec;
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0;
+            white-space: pre-line;
+        }
+        
+        .screen-msg.bad {
+            color: #f3a891;
+        }
+        
+        .screen-msg.good {
+            color: #a9e6bf;
+        }
+        
+        .balance-line {
+            font-family: var(--font-display);
+            font-size: 26px;
+            color: var(--accent);
+            margin: 2px 0 0;
+        }
+        
+        .keypad {
+            margin-top: 18px;
+            display: grid;
+            gap: 10px;
+        }
+        
+        .btn {
+            appearance: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: #eef4f0;
+            font-family: var(--font-body);
+            font-size: 16px;
+            padding: 14px 16px;
+            border-radius: 9px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 120ms ease, transform 120ms ease;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+        
+        .btn:active {
+            transform: scale(0.99);
+        }
+        
+        .btn:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+        
+        .btn .k {
+            font-family: var(--font-display);
+            color: var(--accent);
+            font-size: 13px;
+        }
+        
+        .amount-row {
+            display: none;
+            margin-top: 14px;
+            gap: 8px;
+        }
+        
+        .amount-row.show {
+            display: flex;
+        }
+        
+        .amount-row input {
+            flex: 1;
+            font-family: var(--font-display);
+            font-size: 16px;
+            padding: 12px 14px;
+            border-radius: 9px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: var(--slot);
+            color: #e9f5ec;
+        }
+        
+        .amount-row input:focus-visible {
+            outline: 2px solid var(--accent);
+        }
+        
+        .amount-row button {
+            font-family: var(--font-body);
+            font-size: 15px;
+            padding: 0 18px;
+            border-radius: 9px;
+            border: none;
+            background: var(--accent);
+            color: #1c1305;
+            cursor: pointer;
+        }
+        
+        .amount-row button:hover {
+            background: var(--accent-dim);
+        }
+        
+        .card-slot {
+            margin-top: 16px;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        }
+        
+        .footnote {
+            text-align: center;
+            color: var(--ink-soft);
+            font-size: 12px;
+            margin-top: 16px;
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="machine">
+        <div class="brand">
+            <p class="mark">FIRST CIVIC BANK</p>
+            <h1>Automated Teller</h1>
+        </div>
+
+        <div class="cabinet">
+            <div class="screen" aria-live="polite">
+                <p class="screen-label" id="screenLabel">ACCOUNT BALANCE</p>
+                <p class="balance-line" id="balanceLine">$1,000.00</p>
+                <p class="screen-msg" id="screenMsg">Welcome. Choose a transaction below.</p>
+            </div>
+
+            <div class="keypad" id="menu">
+                <button class="btn" data-action="withdraw">Withdraw cash <span class="k">1</span></button>
+                <button class="btn" data-action="deposit">Deposit funds <span class="k">2</span></button>
+                <button class="btn" data-action="balance">Check balance <span class="k">3</span></button>
+                <button class="btn" data-action="cancel" id="cancelBtn" style="display:none;">Cancel <span class="k">C</span></button>
+            </div>
+
+            <div class="amount-row" id="amountRow">
+                <input type="number" id="amountInput" inputmode="decimal" placeholder="Enter amount" min="0" step="0.01" aria-label="Amount">
+                <button id="confirmBtn" type="button">Confirm</button>
+            </div>
+
+            <div class="card-slot" aria-hidden="true"></div>
+        </div>
+
+        <p class="footnote">Task 3 — ATM Interface · demo account, no real funds</p>
+    </div>
+
+    <script>
+        (function() {
+            // ---- BankAccount: represents the user's bank account (point 4) ----
+            function BankAccount(initialBalance) {
+                this.balance = initialBalance;
+            }
+            BankAccount.prototype.credit = function(amount) {
+                this.balance += amount;
+            };
+            BankAccount.prototype.debit = function(amount) {
+                if (amount > this.balance) return false;
+                this.balance -= amount;
+                return true;
+            };
+
+            // ---- ATM: represents the machine, connects to the account (points 1 & 5) ----
+            function ATM(account) {
+                this.account = account;
+                this.pendingAction = null;
+            }
+            ATM.prototype.formatMoney = function(n) {
+                return '$' + n.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            };
+            // point 3: withdraw(amount)
+            ATM.prototype.withdraw = function(amount) {
+                if (!(amount > 0)) {
+                    return {
+                        ok: false,
+                        message: 'Enter an amount greater than $0.'
+                    };
+                }
+                if (this.account.debit(amount)) {
+                    return {
+                        ok: true,
+                        message: 'Withdrawal approved.\nTake your cash: ' + this.formatMoney(amount)
+                    };
+                }
+                return {
+                    ok: false,
+                    message: 'Insufficient funds for that withdrawal.'
+                };
+            };
+            // point 3: deposit(amount)
+            ATM.prototype.deposit = function(amount) {
+                if (!(amount > 0)) {
+                    return {
+                        ok: false,
+                        message: 'Enter an amount greater than $0.'
+                    };
+                }
+                this.account.credit(amount);
+                return {
+                    ok: true,
+                    message: 'Deposit accepted: ' + this.formatMoney(amount)
+                };
+            };
+            // point 3: checkBalance()
+            ATM.prototype.checkBalance = function() {
+                return {
+                    ok: true,
+                    message: 'Balance updated.'
+                };
+            };
+
+            // ---- UI wiring (point 2: the interface) ----
+            var account = new BankAccount(1000);
+            var atm = new ATM(account);
+
+            var balanceLine = document.getElementById('balanceLine');
+            var screenLabel = document.getElementById('screenLabel');
+            var screenMsg = document.getElementById('screenMsg');
+            var menu = document.getElementById('menu');
+            var cancelBtn = document.getElementById('cancelBtn');
+            var amountRow = document.getElementById('amountRow');
+            var amountInput = document.getElementById('amountInput');
+            var confirmBtn = document.getElementById('confirmBtn');
+
+            function renderBalance() {
+                balanceLine.textContent = atm.formatMoney(account.balance);
+            }
+
+            function setMessage(text, kind) {
+                screenMsg.textContent = text;
+                screenMsg.classList.remove('good', 'bad');
+                if (kind) screenMsg.classList.add(kind);
+            }
+
+            function showAmountEntry(action) {
+                atm.pendingAction = action;
+                amountRow.classList.add('show');
+                cancelBtn.style.display = 'flex';
+                amountInput.value = '';
+                screenLabel.textContent = action === 'withdraw' ? 'ENTER WITHDRAWAL AMOUNT' : 'ENTER DEPOSIT AMOUNT';
+                setMessage('Type an amount, then confirm.');
+                amountInput.focus();
+            }
+
+            function resetToMenu() {
+                atm.pendingAction = null;
+                amountRow.classList.remove('show');
+                cancelBtn.style.display = 'none';
+                screenLabel.textContent = 'ACCOUNT BALANCE';
+            }
+
+            menu.addEventListener('click', function(e) {
+                var btn = e.target.closest('.btn');
+                if (!btn) return;
+                var action = btn.dataset.action;
+
+                if (action === 'withdraw' || action === 'deposit') {
+                    showAmountEntry(action);
+                    return;
+                }
+                if (action === 'balance') {
+                    var result = atm.checkBalance();
+                    renderBalance();
+                    setMessage('Current balance shown above.', 'good');
+                    resetToMenu();
+                    return;
+                }
+                if (action === 'cancel') {
+                    resetToMenu();
+                    setMessage('Transaction cancelled.');
+                    return;
+                }
+            });
+
+            function submitAmount() {
+                var raw = amountInput.value;
+                var amount = parseFloat(raw);
+                if (raw.trim() === '' || isNaN(amount)) {
+                    setMessage('Please enter a valid number.', 'bad');
+                    return;
+                }
+
+                var result;
+                // point 6: validation happens inside withdraw()/deposit()
+                if (atm.pendingAction === 'withdraw') {
+                    result = atm.withdraw(amount);
+                } else {
+                    result = atm.deposit(amount);
+                }
+
+                renderBalance();
+                // point 7: display success/failure message
+                setMessage(result.message, result.ok ? 'good' : 'bad');
+                resetToMenu();
+            }
+
+            confirmBtn.addEventListener('click', submitAmount);
+            amountInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') submitAmount();
+                if (e.key === 'Escape') {
+                    resetToMenu();
+                    setMessage('Transaction cancelled.');
+                }
+            });
+
+            renderBalance();
+        })();
+    </script>
+</body>
+
+</html>
